@@ -7,18 +7,34 @@ und trägst die Eltern ein. Anschließend kannst du die Liste ausdrucken.
 Gebaut mit **Vite + React + Tailwind CSS**, rein **client-side** – keine
 Datenbank, kein Backend. Alle Daten bleiben lokal im Browser (localStorage).
 
+## Zwei Ansichten
+
+Die App hat zwei Rollen:
+
+- **Eltern-Ansicht (anonym, Standard):** Eltern sehen nur, welche Tage angeboten
+  werden und welche Zeitfenster *frei* sind. Sie wählen ein freies Fenster, geben
+  ihren Namen ein und buchen. **Die Namen anderer Eltern sind nicht sichtbar.**
+- **Lehrer-Ansicht (nach Login):** Über *🔒 Lehrer-Login* (Demo-Passwort: `lehrer`)
+  gelangst du in die Verwaltung – du siehst **alle Namen**, legst Termine an,
+  bearbeitest, druckst und löschst.
+
+> ⚠️ Der Login ist nur ein **UI-Gate**, kein echter Schutz: Bei einer rein
+> client-seitigen App liegen alle Daten im Browser. Für echten Zugriffsschutz
+> (und Buchungen von verschiedenen Geräten) wäre später ein Backend nötig.
+
 ## Funktionen
 
-- **Termin anlegen**: Bezeichnung, Datum, Startuhrzeit, Slot-Dauer (20/25/30 Min.),
-  Anzahl der Zeitfenster (Standard: 15) und optional eine Pause zwischen den Slots.
-- **Uhrzeiten automatisch**: Alle Zeitfenster werden automatisch berechnet
-  (z. B. 15:00–15:30, 15:30–16:00 …). Du trägst nur noch die Namen ein.
-- **Eltern eintragen**: Pro Slot einen Namen eintragen – belegte Slots werden
-  farblich markiert (grün = frei, orange = belegt).
-- **Mehrere Termine**: Beliebig viele Termine parallel verwalten.
+- **Termin anlegen (Lehrer)**: Bezeichnung, **Tag**, **Start- und Endzeit**,
+  Dauer pro Gespräch (20/25/30 Min.) und optional eine Pause. Die Zeitfenster
+  werden automatisch erzeugt, sodass sie in das Zeitfenster Start–Ende passen
+  (mit Live-Vorschau, wie viele Gespräche möglich sind).
+- **Mehrere Tage**: Pro Tag einen Termin anlegen – beliebig viele parallel.
+- **Buchen (Eltern)**: Freies Zeitfenster wählen, Namen eingeben, absenden –
+  inkl. Bestätigung.
+- **Verwalten (Lehrer)**: Alle Namen sehen/ändern, Einträge löschen, umbenennen.
 - **Drucken**: Saubere Liste zum Aushängen oder Verteilen (🖨️-Knopf).
 - **Speicherung**: Alles wird automatisch lokal im Browser gespeichert
-  (localStorage) – kein Login, kein Server, funktioniert offline.
+  (localStorage) – kein Server, funktioniert offline.
 
 ## Lokal entwickeln
 

@@ -9,10 +9,30 @@ export function addMinutes(hhmm, mins) {
   return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
 }
 
+export function toMinutes(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
 export function buildSlots(start, dur, count, brk) {
   const slots = [];
   let cur = start;
   for (let i = 0; i < count; i++) {
+    const to = addMinutes(cur, dur);
+    slots.push({ from: cur, to, name: "" });
+    cur = addMinutes(to, brk);
+  }
+  return slots;
+}
+
+// Erzeugt Slots, die in das Zeitfenster [start, end) passen.
+export function buildSlotsByRange(start, end, dur, brk) {
+  const slots = [];
+  const endMin = toMinutes(end);
+  let cur = start;
+  // Schutz gegen Endlosschleife bei ungültigen Werten
+  for (let guard = 0; guard < 200; guard++) {
+    if (toMinutes(cur) + dur > endMin) break;
     const to = addMinutes(cur, dur);
     slots.push({ from: cur, to, name: "" });
     cur = addMinutes(to, brk);
