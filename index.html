@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terminplaner – Elterngespräche</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --ink: #1f2933;
+    --muted: #6b7785;
+    --line: #e2e8f0;
+    --accent: #2563eb;
+    --accent-soft: #eff4ff;
+    --free: #ecfdf5;
+    --free-line: #a7f3d0;
+    --booked: #fff7ed;
+    --booked-line: #fed7aa;
+    --danger: #dc2626;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 24px 18px 80px; }
+
+  header.app {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 22px;
+  }
+  header.app .logo {
+    width: 42px; height: 42px; border-radius: 11px;
+    background: var(--accent); color: #fff;
+    display: grid; place-items: center; font-size: 22px; flex: none;
+  }
+  header.app h1 { font-size: 20px; margin: 0; }
+  header.app p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .card h2 { margin: 0 0 14px; font-size: 16px; }
+
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 5px; }
+  input, select, textarea {
+    width: 100%; font: inherit; color: var(--ink);
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: #fff; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+  .grid { display: grid; gap: 14px; }
+  .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 620px) { .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; } }
+
+  .btn {
+    font: inherit; font-weight: 600; cursor: pointer;
+    border: 1px solid transparent; border-radius: 10px;
+    padding: 10px 16px; background: var(--accent); color: #fff;
+    transition: filter .12s ease;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn.secondary { background: #fff; color: var(--ink); border-color: var(--line); }
+  .btn.ghost { background: transparent; color: var(--accent); padding: 6px 8px; }
+  .btn.danger { background: #fff; color: var(--danger); border-color: #f3c2c2; }
+  .btn.small { padding: 6px 10px; font-size: 13px; }
+  .row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .termin-list { display: grid; gap: 10px; }
+  .termin-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px;
+    cursor: pointer; background: #fff; transition: border-color .12s, background .12s;
+  }
+  .termin-item:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .termin-item.active { border-color: var(--accent); background: var(--accent-soft); }
+  .termin-item .meta { flex: 1; min-width: 0; }
+  .termin-item .meta strong { display: block; font-size: 15px; }
+  .termin-item .meta span { font-size: 13px; color: var(--muted); }
+  .termin-item .count {
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  }
+
+  .slots { display: grid; gap: 8px; margin-top: 4px; }
+  .slot {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px 8px 14px; border-radius: 11px;
+    border: 1px solid var(--free-line); background: var(--free);
+  }
+  .slot.booked { border-color: var(--booked-line); background: var(--booked); }
+  .slot .time { font-weight: 700; font-variant-numeric: tabular-nums; width: 110px; flex: none; }
+  .slot .name { flex: 1; border-color: transparent; background: transparent; padding: 6px 8px; }
+  .slot .name:focus { background: #fff; border-color: var(--accent); }
+  .slot .name::placeholder { color: var(--muted); font-style: italic; }
+  .slot .clear { flex: none; }
+
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin: 10px 2px 0; }
+  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .legend .f { background: var(--free); border: 1px solid var(--free-line); }
+  .legend .b { background: var(--booked); border: 1px solid var(--booked-line); }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .toolbar .left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .summary { font-size: 13px; color: var(--muted); }
+  .empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .hidden { display: none !important; }
+
+  /* Print: clean sign-up sheet */
+  @media print {
+    body { background: #fff; }
+    .no-print { display: none !important; }
+    .wrap { max-width: none; padding: 0; }
+    .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+    .slot { border: 1px solid #cbd5e1; background: #fff !important; page-break-inside: avoid; }
+    .slot .name { border: none; }
+    .print-head { display: block !important; margin-bottom: 16px; }
+  }
+  .print-head { display: none; }
+  .print-head h2 { font-size: 22px; margin: 0 0 2px; }
+  .print-head p { margin: 0; color: #555; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app no-print">
+    <div class="logo">🗓️</div>
+    <div>
+      <h1>Terminplaner</h1>
+      <p>Elterngespräche planen – Zeitfenster anlegen, Eltern eintragen, Liste ausdrucken.</p>
+    </div>
+  </header>
+
+  <!-- NEW TERMIN -->
+  <div class="card no-print" id="createCard">
+    <h2>Neuen Termin anlegen</h2>
+    <div class="grid cols-2">
+      <div>
+        <label for="f-title">Bezeichnung</label>
+        <input id="f-title" type="text" placeholder="z. B. Elternsprechtag Klasse 3a">
+      </div>
+      <div>
+        <label for="f-date">Datum</label>
+        <input id="f-date" type="date">
+      </div>
+    </div>
+    <div class="grid cols-3" style="margin-top:14px">
+      <div>
+        <label for="f-start">Beginn (erste Uhrzeit)</label>
+        <input id="f-start" type="time" value="15:00">
+      </div>
+      <div>
+        <label for="f-dur">Dauer pro Slot</label>
+        <select id="f-dur">
+          <option value="20">20 Minuten</option>
+          <option value="25">25 Minuten</option>
+          <option value="30" selected>30 Minuten</option>
+        </select>
+      </div>
+      <div>
+        <label for="f-count">Anzahl Zeitfenster</label>
+        <input id="f-count" type="number" min="1" max="60" value="15">
+      </div>
+    </div>
+    <div class="grid cols-2" style="margin-top:14px">
+      <div>
+        <label for="f-break">Pause zwischen den Slots (optional)</label>
+        <select id="f-break">
+          <option value="0" selected>keine Pause</option>
+          <option value="5">5 Minuten</option>
+          <option value="10">10 Minuten</option>
+        </select>
+      </div>
+      <div style="display:flex; align-items:flex-end">
+        <button class="btn" id="createBtn" style="width:100%">Termin & 15 Zeitfenster erstellen</button>
+      </div>
+    </div>
+    <p class="hint">Die Uhrzeiten werden automatisch berechnet – du musst nur noch die Namen der Eltern eintragen.</p>
+  </div>
+
+  <!-- TERMIN LIST -->
+  <div class="card no-print" id="listCard">
+    <h2>Meine Termine</h2>
+    <div class="termin-list" id="terminList"></div>
+    <div class="empty" id="listEmpty">Noch keine Termine angelegt.</div>
+  </div>
+
+  <!-- DETAIL -->
+  <div class="card" id="detailCard" style="display:none">
+    <div class="print-head" id="printHead"></div>
+
+    <div class="toolbar no-print">
+      <div class="left">
+        <button class="btn ghost small" id="backBtn">‹ Übersicht</button>
+        <span class="summary" id="detailSummary"></span>
+      </div>
+      <div class="row-actions">
+        <button class="btn secondary small" id="printBtn">🖨️ Drucken</button>
+        <button class="btn secondary small" id="renameBtn">Umbenennen</button>
+        <button class="btn danger small" id="deleteBtn">Löschen</button>
+      </div>
+    </div>
+
+    <div class="slots" id="slotList"></div>
+
+    <div class="legend no-print">
+      <span><i class="f"></i>frei</span>
+      <span><i class="b"></i>belegt</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var KEY = "terminplaner.v1";
+  var state = load();
+
+  // ---- persistence ----
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { termine: [], openId: null };
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function uid() {
+    return "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  // ---- time helpers ----
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function addMinutes(hhmm, mins) {
+    var p = hhmm.split(":");
+    var total = parseInt(p[0], 10) * 60 + parseInt(p[1], 10) + mins;
+    total = ((total % 1440) + 1440) % 1440;
+    return pad(Math.floor(total / 60)) + ":" + pad(total % 60);
+  }
+  function buildSlots(start, dur, count, brk) {
+    var slots = [];
+    var cur = start;
+    for (var i = 0; i < count; i++) {
+      var end = addMinutes(cur, dur);
+      slots.push({ from: cur, to: end, name: "" });
+      cur = addMinutes(end, brk);
+    }
+    return slots;
+  }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso + "T00:00:00");
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+  }
+
+  // ---- DOM refs ----
+  var $ = function (id) { return document.getElementById(id); };
+  var terminList = $("terminList");
+  var listEmpty = $("listEmpty");
+  var detailCard = $("detailCard");
+  var listCard = $("listCard");
+  var createCard = $("createCard");
+  var slotList = $("slotList");
+
+  // ---- create ----
+  $("createBtn").addEventListener("click", function () {
+    var title = $("f-title").value.trim() || "Elterngespräche";
+    var date = $("f-date").value;
+    var start = $("f-start").value || "15:00";
+    var dur = parseInt($("f-dur").value, 10);
+    var count = Math.max(1, Math.min(60, parseInt($("f-count").value, 10) || 15));
+    var brk = parseInt($("f-break").value, 10) || 0;
+
+    var t = {
+      id: uid(), title: title, date: date,
+      start: start, dur: dur, brk: brk,
+      slots: buildSlots(start, dur, count, brk)
+    };
+    state.termine.unshift(t);
+    state.openId = t.id;
+    save();
+    // reset form name only
+    $("f-title").value = "";
+    renderAll();
+  });
+
+  // ---- list ----
+  function renderList() {
+    terminList.innerHTML = "";
+    listEmpty.style.display = state.termine.length ? "none" : "block";
+    state.termine.forEach(function (t) {
+      var booked = t.slots.filter(function (s) { return s.name.trim(); }).length;
+      var item = document.createElement("div");
+      item.className = "termin-item" + (t.id === state.openId ? " active" : "");
+      item.innerHTML =
+        '<div class="meta"><strong></strong><span></span></div>' +
+        '<div class="count">' + booked + "/" + t.slots.length + " belegt</div>";
+      item.querySelector("strong").textContent = t.title;
+      item.querySelector("span").textContent =
+        (t.date ? fmtDate(t.date) + " · " : "") + "ab " + t.start + " · " + t.dur + " Min.";
+      item.addEventListener("click", function () {
+        state.openId = t.id; save(); renderAll();
+        detailCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      terminList.appendChild(item);
+    });
+  }
+
+  // ---- detail ----
+  function currentTermin() {
+    return state.termine.find(function (t) { return t.id === state.openId; }) || null;
+  }
+
+  function renderDetail() {
+    var t = currentTermin();
+    if (!t) { detailCard.style.display = "none"; return; }
+    detailCard.style.display = "block";
+
+    var booked = t.slots.filter(function (s) { return s.name.trim(); }).length;
+    $("detailSummary").textContent =
+      t.title + " · " + booked + " von " + t.slots.length + " Plätzen vergeben";
+
+    $("printHead").innerHTML =
+      "<h2></h2><p></p>";
+    $("printHead").querySelector("h2").textContent = t.title;
+    $("printHead").querySelector("p").textContent =
+      (t.date ? fmtDate(t.date) : "") + (t.date ? " · " : "") + "Gesprächsdauer je " + t.dur + " Minuten";
+
+    slotList.innerHTML = "";
+    t.slots.forEach(function (s, idx) {
+      var row = document.createElement("div");
+      row.className = "slot" + (s.name.trim() ? " booked" : "");
+      row.innerHTML =
+        '<span class="time">' + s.from + "–" + s.to + "</span>" +
+        '<input class="name" type="text" placeholder="frei – Name eintragen">' +
+        '<button class="btn ghost small clear no-print" title="Eintrag löschen">✕</button>';
+      var input = row.querySelector(".name");
+      input.value = s.name;
+      input.addEventListener("input", function () {
+        s.name = input.value;
+        row.className = "slot" + (s.name.trim() ? " booked" : "");
+        save();
+        // light summary refresh without re-rendering inputs
+        var b = t.slots.filter(function (x) { return x.name.trim(); }).length;
+        $("detailSummary").textContent = t.title + " · " + b + " von " + t.slots.length + " Plätzen vergeben";
+        renderList();
+      });
+      row.querySelector(".clear").addEventListener("click", function () {
+        s.name = ""; save(); renderDetail(); renderList();
+      });
+      slotList.appendChild(row);
+    });
+  }
+
+  $("backBtn").addEventListener("click", function () {
+    state.openId = null; save(); renderAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  $("printBtn").addEventListener("click", function () { window.print(); });
+  $("renameBtn").addEventListener("click", function () {
+    var t = currentTermin(); if (!t) return;
+    var name = prompt("Bezeichnung ändern:", t.title);
+    if (name !== null && name.trim()) { t.title = name.trim(); save(); renderAll(); }
+  });
+  $("deleteBtn").addEventListener("click", function () {
+    var t = currentTermin(); if (!t) return;
+    if (!confirm('Termin „' + t.title + '" wirklich löschen?')) return;
+    state.termine = state.termine.filter(function (x) { return x.id !== t.id; });
+    state.openId = null; save(); renderAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  function renderAll() { renderList(); renderDetail(); }
+
+  // default date = today
+  (function initDate() {
+    var d = new Date();
+    $("f-date").value = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  })();
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
