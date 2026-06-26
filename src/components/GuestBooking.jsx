@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { formatDate } from "../lib/time.js";
+import Confetti from "./Confetti.jsx";
 
 export default function GuestBooking({ termin, onBack, onBook }) {
   const [selected, setSelected] = useState(null); // Index des gewählten Slots
@@ -26,9 +27,12 @@ export default function GuestBooking({ termin, onBack, onBook }) {
   // --- Bestätigung ---
   if (confirmed) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center shadow-sm">
-        <div className="mb-2 text-4xl">✅</div>
-        <h2 className="text-lg font-bold text-emerald-800">Termin gebucht!</h2>
+      <div className="animate-pop rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
+        <Confetti />
+        <div className="animate-check mx-auto mb-3 grid h-16 w-16 place-items-center rounded-full bg-emerald-600 text-3xl text-white shadow-lg shadow-emerald-200">
+          ✓
+        </div>
+        <h2 className="text-xl font-bold text-emerald-800">Termin gebucht!</h2>
         <p className="mt-1 text-emerald-700">
           {termin.title}
           {termin.date ? ", " + formatDate(termin.date) : ""}

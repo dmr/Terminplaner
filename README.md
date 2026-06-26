@@ -9,29 +9,31 @@ Datenbank, kein Backend. Alle Daten bleiben lokal im Browser (localStorage).
 
 ## Zwei Ansichten
 
-Die App hat zwei Rollen:
+Die App hat zwei Ansichten, die sich oben rechts umschalten lassen:
 
-- **Eltern-Ansicht (anonym, Standard):** Eltern sehen nur, welche Tage angeboten
-  werden und welche Zeitfenster *frei* sind. Sie wählen ein freies Fenster, geben
-  ihren Namen ein und buchen. **Die Namen anderer Eltern sind nicht sichtbar.**
-- **Lehrer-Ansicht (nach Login):** Über *🔒 Lehrer-Login* (Demo-Passwort: `lehrer`)
-  gelangst du in die Verwaltung – du siehst **alle Namen**, legst Termine an,
-  bearbeitest, druckst und löschst.
+- **Eltern-Ansicht (Standard):** Eltern sehen nur, welche Tage angeboten werden
+  und welche Zeitfenster *frei* sind. Sie wählen ein freies Fenster, geben ihren
+  Namen ein und buchen (inkl. kleiner Erfolgs-Animation). **Die Namen anderer
+  Eltern, Notizen und Markierungen sind hier nicht sichtbar.**
+- **Lehrer-Ansicht:** Verwaltung – Termine schrittweise anlegen, **alle Namen**
+  sehen, **interne Notizen und Markierungen** je Zeitfenster setzen, drucken und
+  löschen (mit Sicherheits-Rückfrage).
 
-> ⚠️ Der Login ist nur ein **UI-Gate**, kein echter Schutz: Bei einer rein
-> client-seitigen App liegen alle Daten im Browser. Für echten Zugriffsschutz
-> (und Buchungen von verschiedenen Geräten) wäre später ein Backend nötig.
+> ⚠️ Die Ansichten sind **kein Zugriffsschutz**, sondern nur eine UI-Trennung
+> (Showcase): Bei einer rein client-seitigen App liegen alle Daten im Browser.
+> Für echten Schutz und Buchungen von verschiedenen Geräten wäre ein Backend nötig.
 
 ## Funktionen
 
-- **Termin anlegen (Lehrer)**: Bezeichnung, **Tag**, **Start- und Endzeit**,
-  Dauer pro Gespräch (20/25/30 Min.) und optional eine Pause. Die Zeitfenster
-  werden automatisch erzeugt, sodass sie in das Zeitfenster Start–Ende passen
-  (mit Live-Vorschau, wie viele Gespräche möglich sind).
+- **Termin anlegen (Lehrer)**: Schrittweiser Assistent – Tag & Titel →
+  Start-/Endzeit, Dauer (20/25/30 Min.) & Pause → Überblick. Die Zeitfenster
+  werden automatisch passend zum Zeitraum erzeugt (mit Live-Vorschau).
 - **Mehrere Tage**: Pro Tag einen Termin anlegen – beliebig viele parallel.
-- **Buchen (Eltern)**: Freies Zeitfenster wählen, Namen eingeben, absenden –
-  inkl. Bestätigung.
-- **Verwalten (Lehrer)**: Alle Namen sehen/ändern, Einträge löschen, umbenennen.
+- **Buchen (Eltern)**: Freies Zeitfenster antippen → fokussierte Namenseingabe →
+  absenden – mit Erfolgs-Animation.
+- **Verwalten (Lehrer)**: Alle Namen sehen/ändern, interne **Notizen** und farbige
+  **Markierungen** je Zeitfenster, Einträge entfernen (mit Rückfrage), umbenennen,
+  Termin löschen (mit Rückfrage).
 - **Drucken**: Saubere Liste zum Aushängen oder Verteilen (🖨️-Knopf).
 - **Speicherung**: Alles wird automatisch lokal im Browser gespeichert
   (localStorage) – kein Server, funktioniert offline.

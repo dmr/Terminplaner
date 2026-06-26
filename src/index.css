@@ -10,7 +10,73 @@ html {
 }
 
 body {
-  @apply bg-slate-100 text-slate-800 antialiased;
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+/* Sanftes Einblenden für Karten/Schritte */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-pop {
+  animation: pop-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes check-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-check {
+  animation: check-pop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Konfetti */
+@keyframes confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-10vh) translateX(0) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(105vh) translateX(var(--drift)) rotate(var(--rot));
+  }
+}
+.confetti-piece {
+  position: absolute;
+  top: -5vh;
+  border-radius: 2px;
+  animation-name: confetti-fall;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop,
+  .animate-check,
+  .confetti-piece {
+    animation: none !important;
+  }
+  .confetti-piece {
+    display: none;
+  }
 }
 
 /* Druckansicht: nur die Slot-Liste, sauber in Schwarz-Weiß */

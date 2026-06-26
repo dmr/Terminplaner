@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { useTermine } from "./lib/storage.js";
-import { ADMIN_PASSWORD } from "./lib/auth.js";
-import CreateForm from "./components/CreateForm.jsx";
+import CreateWizard from "./components/CreateWizard.jsx";
 import TerminList from "./components/TerminList.jsx";
 import TerminDetail from "./components/TerminDetail.jsx";
 import GuestList from "./components/GuestList.jsx";
 import GuestBooking from "./components/GuestBooking.jsx";
-import LoginModal from "./components/LoginModal.jsx";
 
 export default function App() {
   const [termine, setTermine] = useTermine();
   const [openId, setOpenId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
 
   const open = termine.find((t) => t.id === openId) || null;
 
@@ -35,23 +32,12 @@ export default function App() {
 
   function handleDelete() {
     if (!open) return;
-    if (!confirm(`Termin „${open.title}" wirklich löschen?`)) return;
     setTermine((prev) => prev.filter((t) => t.id !== open.id));
     setOpenId(null);
   }
 
-  function handleLogin(pw) {
-    if (pw === ADMIN_PASSWORD) {
-      setIsAdmin(true);
-      setShowLogin(false);
-      setOpenId(null);
-      return true;
-    }
-    return false;
-  }
-
-  function logout() {
-    setIsAdmin(false);
+  function switchRole(admin) {
+    setIsAdmin(admin);
     setOpenId(null);
   }
 
@@ -63,64 +49,51 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-20 pt-6">
+    <div className="mx-auto max-w-2xl px-4 pb-20 pt-6">
       <header className="no-print mb-6 flex items-center gap-3">
-        <div className="grid h-11 w-11 flex-none place-items-center rounded-xl bg-blue-600 text-2xl">
+        <div className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-blue-600 text-xl text-white">
           🗓️
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold">Terminplaner</h1>
+          <h1 className="text-lg font-bold tracking-tight">Terminplaner</h1>
           <p className="truncate text-sm text-slate-500">
-            {isAdmin
-              ? "Lehrer-Ansicht – Termine anlegen & verwalten"
-              : "Elterngespräche – freies Zeitfenster buchen"}
+            {isAdmin ? "Lehrer-Ansicht" : "Termin für ein Gespräch buchen"}
           </p>
         </div>
-        {isAdmin ? (
-          <button
-            onClick={logout}
-            className="flex-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50"
-          >
-            Abmelden
-          </button>
-        ) : (
-          <button
-            onClick={() => setShowLogin(true)}
-            className="flex-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50"
-          >
-            🔒 Lehrer-Login
-          </button>
-        )}
+        <button
+          onClick={() => switchRole(!isAdmin)}
+          className="flex-none rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+        >
+          {isAdmin ? "Eltern-Ansicht" : "Lehrer-Ansicht"}
+        </button>
       </header>
 
-      {isAdmin ? (
-        open ? (
-          <TerminDetail
+      <div className="animate-pop">
+        {isAdmin ? (
+          open ? (
+            <TerminDetail
+              termin={open}
+              onBack={() => setOpenId(null)}
+              onChange={handleChange}
+              onRename={handleRename}
+              onDelete={handleDelete}
+            />
+          ) : (
+            <div className="grid gap-4">
+              <CreateWizard onCreate={handleCreate} />
+              <TerminList termine={termine} openId={openId} onOpen={setOpenId} />
+            </div>
+          )
+        ) : open ? (
+          <GuestBooking
             termin={open}
             onBack={() => setOpenId(null)}
-            onChange={handleChange}
-            onRename={handleRename}
-            onDelete={handleDelete}
+            onBook={handleBook}
           />
         ) : (
-          <div className="grid gap-4">
-            <CreateForm onCreate={handleCreate} />
-            <TerminList termine={termine} openId={openId} onOpen={setOpenId} />
-          </div>
-        )
-      ) : open ? (
-        <GuestBooking
-          termin={open}
-          onBack={() => setOpenId(null)}
-          onBook={handleBook}
-        />
-      ) : (
-        <GuestList termine={termine} onOpen={setOpenId} />
-      )}
-
-      {showLogin && (
-        <LoginModal onLogin={handleLogin} onClose={() => setShowLogin(false)} />
-      )}
+          <GuestList termine={termine} onOpen={setOpenId} />
+        )}
+      </div>
     </div>
   );
 }
