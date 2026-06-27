@@ -10,7 +10,15 @@ const FLAGS = [
 ];
 const flagColor = (key) => FLAGS.find((f) => f.key === key)?.color || null;
 
-export default function TerminDetail({ termin, onBack, onChange, onRename, onDelete }) {
+export default function TerminDetail({
+  termin,
+  onBack,
+  onSetSlot,
+  onRemoveBooking,
+  onRename,
+  onDelete,
+  onShare,
+}) {
   const [openFlag, setOpenFlag] = useState(null);
   const [openNote, setOpenNote] = useState(null);
   const [pendingClear, setPendingClear] = useState(null);
@@ -21,10 +29,7 @@ export default function TerminDetail({ termin, onBack, onChange, onRename, onDel
   const booked = termin.slots.filter((s) => s.name.trim()).length;
 
   function setSlot(idx, patch) {
-    onChange({
-      ...termin,
-      slots: termin.slots.map((s, i) => (i === idx ? { ...s, ...patch } : s)),
-    });
+    onSetSlot(termin.id, idx, patch);
   }
 
   return (
@@ -54,6 +59,12 @@ export default function TerminDetail({ termin, onBack, onChange, onRename, onDel
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            onClick={onShare}
+            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
+          >
+            Teilen
+          </button>
           <button
             onClick={() => window.print()}
             className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-50"
@@ -198,7 +209,7 @@ export default function TerminDetail({ termin, onBack, onChange, onRename, onDel
           confirmLabel="Eintrag entfernen"
           onCancel={() => setPendingClear(null)}
           onConfirm={() => {
-            setSlot(pendingClear, { name: "", note: "", flag: "" });
+            onRemoveBooking(termin.id, pendingClear);
             setPendingClear(null);
           }}
         />

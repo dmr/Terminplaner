@@ -4,8 +4,13 @@ Eine kleine, einfache App zum Planen von Elterngesprächen / Sprechtagen.
 Pro Termin legst du mehrere Zeitfenster (Slots) à 20, 25 oder 30 Minuten an
 und trägst die Eltern ein. Anschließend kannst du die Liste ausdrucken.
 
-Gebaut mit **Vite + React + Tailwind CSS**, rein **client-side** – keine
-Datenbank, kein Backend. Alle Daten bleiben lokal im Browser (localStorage).
+Gebaut mit **Vite + React + Tailwind CSS**. Die App läuft in zwei Modi:
+
+- **Lokal (Standard):** ohne jede Konfiguration – alle Daten bleiben im Browser
+  (localStorage). Ideal als Tablet/Kiosk am Elternabend.
+- **Cloud (optional, Supabase):** geräteübergreifende Buchung über einen
+  **Teilen-Link**. Eltern buchen von zu Hause, Doppelbuchungen werden serverseitig
+  verhindert, Namen bleiben dank Row-Level-Security privat.
 
 ## Zwei Ansichten
 
@@ -19,24 +24,25 @@ Die App hat zwei Ansichten, die sich oben rechts umschalten lassen:
   sehen, **interne Notizen und Markierungen** je Zeitfenster setzen, drucken und
   löschen (mit Sicherheits-Rückfrage).
 
-> ⚠️ Die Ansichten sind **kein Zugriffsschutz**, sondern nur eine UI-Trennung
-> (Showcase): Bei einer rein client-seitigen App liegen alle Daten im Browser.
-> Für echten Schutz und Buchungen von verschiedenen Geräten wäre ein Backend nötig.
+> Im **lokalen Modus** ist die Trennung nur eine UI-Umschaltung (alle Daten
+> liegen im Browser). Im **Cloud-Modus** (Supabase) ist sie echt: Die Lehrkraft
+> meldet sich per E-Mail-Link an, und Namen sind per Row-Level-Security geschützt.
 
 ## Funktionen
 
-- **Termin anlegen (Lehrer)**: Schrittweiser Assistent – Tag & Titel →
-  Start-/Endzeit, Dauer (20/25/30 Min.) & Pause → Überblick. Die Zeitfenster
-  werden automatisch passend zum Zeitraum erzeugt (mit Live-Vorschau).
+- **Termin anlegen (Lehrer)**: Schrittweiser Assistent – Tag → Start-/Endzeit,
+  Dauer (20/25/30 Min.) & Pause → Überblick. Die Zeitfenster werden automatisch
+  passend zum Zeitraum erzeugt (mit Live-Vorschau).
 - **Mehrere Tage**: Pro Tag einen Termin anlegen – beliebig viele parallel.
 - **Buchen (Eltern)**: Freies Zeitfenster antippen → fokussierte Namenseingabe →
   absenden – mit Erfolgs-Animation.
 - **Verwalten (Lehrer)**: Alle Namen sehen/ändern, interne **Notizen** und farbige
   **Markierungen** je Zeitfenster, Einträge entfernen (mit Rückfrage), umbenennen,
   Termin löschen (mit Rückfrage).
+- **Teilen-Link + QR-Code (Lehrer)**: Pro Termin ein Link, den Eltern öffnen, um
+  ein freies Zeitfenster zu buchen – auch als QR-Code zum Aushängen.
 - **Drucken**: Saubere Liste zum Aushängen oder Verteilen (🖨️-Knopf).
-- **Speicherung**: Alles wird automatisch lokal im Browser gespeichert
-  (localStorage) – kein Server, funktioniert offline.
+- **Speicherung**: Lokal im Browser oder – mit Supabase – in der Cloud.
 
 ## Lokal entwickeln
 
@@ -73,8 +79,53 @@ https://<dein-github-name>.github.io/Terminplaner/
 > gesetzt – passend zum Repo-Namen. Wenn das Repository anders heißt, diesen
 > Wert entsprechend anpassen.
 
-## Hinweis zu den Daten
+## Cloud-Modus mit Supabase (optional)
 
-Die Daten liegen nur lokal im Browser (localStorage). Sie werden **nicht** in
-die Cloud synchronisiert. Möchtest du sie auf einem anderen Gerät nutzen, trage
-die Termine dort neu ein oder drucke die Liste aus.
+Damit Eltern von verschiedenen Geräten buchen können, lässt sich die App mit
+[Supabase](https://supabase.com) (kostenloses Free-Tier genügt) verbinden.
+
+**1. Projekt & Schema**
+
+1. In Supabase ein Projekt anlegen.
+2. Im **SQL Editor** den Inhalt von [`supabase/schema.sql`](supabase/schema.sql)
+   einmal ausführen. Das legt die Tabellen, die Datenschutz-Sicht und die
+   Buchungs-Funktion samt Row-Level-Security an.
+3. Unter **Authentication → Providers** ist **Email** standardmäßig aktiv
+   (Anmeldung der Lehrkraft per Magic-Link, kein Passwort).
+
+**2. Schlüssel eintragen**
+
+Aus **Project Settings → API** die Werte kopieren:
+
+```bash
+cp .env.example .env
+# VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY eintragen
+```
+
+Lokal startet `npm run dev` damit im Cloud-Modus. Für GitHub Pages dieselben
+Werte als **Repository-Secrets** hinterlegen (Settings → Secrets and variables →
+Actions): `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY`. Der Deploy-Workflow
+liest sie beim Build.
+
+**3. Ablauf**
+
+- Lehrkraft meldet sich per E-Mail-Link an, legt Termine an und teilt je Termin
+  den **Link/QR-Code**.
+- Eltern öffnen den Link (`…/Terminplaner/?t=<Termin-ID>`), sehen nur freie
+  Zeitfenster und buchen. Namen anderer Eltern bleiben verborgen.
+
+### Datenschutz-Modell
+
+- `termine` enthält nur Metadaten (Datum/Zeiten), **keine Namen** – die zufällige
+  Termin-ID dient als Teilen-Link.
+- `bookings` (Namen/Notizen) ist nur für den Owner lesbar (RLS).
+- Eltern sehen über die Sicht `taken_slots` ausschließlich, **welche** Slots
+  belegt sind – nicht **von wem**.
+- Buchungen laufen über die Funktion `book_slot()` und sind atomar
+  (keine Doppelbuchung).
+
+## Hinweis zum lokalen Modus
+
+Ohne Supabase-Konfiguration liegen die Daten nur lokal im Browser und werden
+nicht zwischen Geräten synchronisiert. Perfekt für ein Tablet vor Ort; für
+Buchungen von zu Hause den Cloud-Modus einrichten.

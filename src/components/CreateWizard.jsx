@@ -5,7 +5,6 @@ import {
   toMinutes,
   formatDate,
 } from "../lib/time.js";
-import { uid } from "../lib/storage.js";
 
 const STEPS = ["Tag", "Uhrzeiten", "Überblick"];
 
@@ -45,14 +44,12 @@ export default function CreateWizard({ onCreate, onCancel }) {
   function create() {
     if (invalidRange || preview.length === 0) return;
     onCreate({
-      id: uid(),
       title: "",
       date,
       start,
       end,
       dur: Number(dur),
       brk: Number(brk),
-      slots: preview,
     });
   }
 
