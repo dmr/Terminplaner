@@ -52,6 +52,16 @@ export function formatDate(iso) {
   });
 }
 
+// Endzeit eines Termins (Fallback auf das Ende des letzten Slots).
+export function terminEnd(t) {
+  return t.end || (t.slots.length ? t.slots[t.slots.length - 1].to : "");
+}
+
+// Anzeigename eines Termins: eigener Titel, sonst das ausgeschriebene Datum.
+export function terminLabel(t) {
+  return (t.title && t.title.trim()) || formatDate(t.date) || "Termin";
+}
+
 export function todayISO() {
   const d = new Date();
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;

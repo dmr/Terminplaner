@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatDate } from "../lib/time.js";
+import { formatDate, terminLabel, terminEnd } from "../lib/time.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 
 const FLAGS = [
@@ -31,7 +31,7 @@ export default function TerminDetail({ termin, onBack, onChange, onRename, onDel
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       {/* Druck-Kopf */}
       <div className="print-only mb-4 hidden">
-        <h2 className="text-2xl font-bold">{termin.title}</h2>
+        <h2 className="text-2xl font-bold">{terminLabel(termin)}</h2>
         <p className="text-slate-600">
           {termin.date ? formatDate(termin.date) + " · " : ""}
           Gesprächsdauer je {termin.dur} Minuten
@@ -47,10 +47,10 @@ export default function TerminDetail({ termin, onBack, onChange, onRename, onDel
           >
             ‹ Übersicht
           </button>
-          <h2 className="truncate text-lg font-bold">{termin.title}</h2>
-          <p className="text-sm text-slate-500">
-            {termin.date ? formatDate(termin.date) + " · " : ""}
-            {booked} von {termin.slots.length} Plätzen vergeben
+          <h2 className="truncate text-lg font-bold">{terminLabel(termin)}</h2>
+          <p className="text-sm text-slate-500 tabular-nums">
+            {termin.start}–{terminEnd(termin)} Uhr · {booked} von{" "}
+            {termin.slots.length} vergeben
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

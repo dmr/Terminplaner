@@ -3,18 +3,19 @@ import { useTermine } from "./lib/storage.js";
 import CreateWizard from "./components/CreateWizard.jsx";
 import TerminList from "./components/TerminList.jsx";
 import TerminDetail from "./components/TerminDetail.jsx";
-import GuestList from "./components/GuestList.jsx";
-import GuestBooking from "./components/GuestBooking.jsx";
+import GuestFlow from "./components/GuestFlow.jsx";
 
 export default function App() {
   const [termine, setTermine] = useTermine();
   const [openId, setOpenId] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const open = termine.find((t) => t.id === openId) || null;
 
   function handleCreate(termin) {
     setTermine((prev) => [termin, ...prev]);
+    setCreating(false);
     setOpenId(termin.id);
   }
 
@@ -24,10 +25,8 @@ export default function App() {
 
   function handleRename() {
     if (!open) return;
-    const name = prompt("Bezeichnung ändern:", open.title);
-    if (name !== null && name.trim()) {
-      handleChange({ ...open, title: name.trim() });
-    }
+    const name = prompt("Bezeichnung (optional):", open.title || "");
+    if (name !== null) handleChange({ ...open, title: name.trim() });
   }
 
   function handleDelete() {
@@ -39,13 +38,17 @@ export default function App() {
   function switchRole(admin) {
     setIsAdmin(admin);
     setOpenId(null);
+    setCreating(false);
   }
 
-  // Gast bucht ein Zeitfenster
-  function handleBook(idx, name) {
-    if (!open) return;
-    const slots = open.slots.map((s, i) => (i === idx ? { ...s, name } : s));
-    handleChange({ ...open, slots });
+  function handleGuestBook(terminId, idx, name) {
+    setTermine((prev) =>
+      prev.map((t) =>
+        t.id === terminId
+          ? { ...t, slots: t.slots.map((s, i) => (i === idx ? { ...s, name } : s)) }
+          : t
+      )
+    );
   }
 
   return (
@@ -78,20 +81,24 @@ export default function App() {
               onRename={handleRename}
               onDelete={handleDelete}
             />
+          ) : creating ? (
+            <CreateWizard
+              onCreate={handleCreate}
+              onCancel={() => setCreating(false)}
+            />
           ) : (
             <div className="grid gap-4">
-              <CreateWizard onCreate={handleCreate} />
-              <TerminList termine={termine} openId={openId} onOpen={setOpenId} />
+              <button
+                onClick={() => setCreating(true)}
+                className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-4 font-semibold text-blue-600 transition hover:border-blue-400 hover:bg-blue-50"
+              >
+                <span className="text-lg leading-none">＋</span> Neuer Termin
+              </button>
+              <TerminList termine={termine} onOpen={setOpenId} />
             </div>
           )
-        ) : open ? (
-          <GuestBooking
-            termin={open}
-            onBack={() => setOpenId(null)}
-            onBook={handleBook}
-          />
         ) : (
-          <GuestList termine={termine} onOpen={setOpenId} />
+          <GuestFlow termine={termine} onBook={handleGuestBook} />
         )}
       </div>
     </div>

@@ -7,7 +7,7 @@ import {
 } from "../lib/time.js";
 import { uid } from "../lib/storage.js";
 
-const STEPS = ["Tag & Titel", "Uhrzeiten", "Überblick"];
+const STEPS = ["Tag", "Uhrzeiten", "Überblick"];
 
 function Chip({ active, onClick, children }) {
   return (
@@ -26,9 +26,8 @@ function Chip({ active, onClick, children }) {
   );
 }
 
-export default function CreateWizard({ onCreate }) {
+export default function CreateWizard({ onCreate, onCancel }) {
   const [step, setStep] = useState(0);
-  const [title, setTitle] = useState("");
   const [date, setDate] = useState(todayISO());
   const [start, setStart] = useState("15:00");
   const [end, setEnd] = useState("18:00");
@@ -43,16 +42,11 @@ export default function CreateWizard({ onCreate }) {
     "w-full rounded-xl border border-slate-200 px-4 py-3 text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
   const labelCls = "mb-1.5 block text-sm font-semibold text-slate-500";
 
-  function reset() {
-    setStep(0);
-    setTitle("");
-  }
-
   function create() {
     if (invalidRange || preview.length === 0) return;
     onCreate({
       id: uid(),
-      title: title.trim() || "Elterngespräche",
+      title: "",
       date,
       start,
       end,
@@ -60,11 +54,27 @@ export default function CreateWizard({ onCreate }) {
       brk: Number(brk),
       slots: preview,
     });
-    reset();
+  }
+
+  function back() {
+    if (step === 0) onCancel?.();
+    else setStep((s) => s - 1);
   }
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-lg font-bold">Neuer Termin</h2>
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-500 hover:bg-slate-100"
+          >
+            Abbrechen
+          </button>
+        )}
+      </div>
+
       {/* Fortschritt */}
       <div className="mb-5 flex items-center gap-2">
         {STEPS.map((s, i) => (
@@ -89,41 +99,24 @@ export default function CreateWizard({ onCreate }) {
             >
               {s}
             </span>
-            {i < STEPS.length - 1 && (
-              <div className="h-px flex-1 bg-slate-200" />
-            )}
+            {i < STEPS.length - 1 && <div className="h-px flex-1 bg-slate-200" />}
           </div>
         ))}
       </div>
 
-      {/* Schritt 1: Tag & Titel */}
+      {/* Schritt 1: Tag */}
       {step === 0 && (
-        <div className="grid gap-4">
-          <div>
-            <label className={labelCls}>Bezeichnung</label>
-            <input
-              autoFocus
-              className={inputCls}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="z. B. Elternsprechtag Klasse 3a"
-            />
-            <p className="mt-1 text-xs text-slate-400">
-              Optional – ohne Angabe heißt der Termin „Elterngespräche".
-            </p>
-          </div>
-          <div>
-            <label className={labelCls}>An welchem Tag?</label>
-            <input
-              type="date"
-              className={inputCls}
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-            {date && (
-              <p className="mt-1 text-xs text-slate-400">{formatDate(date)}</p>
-            )}
-          </div>
+        <div>
+          <label className={labelCls}>An welchem Tag finden die Gespräche statt?</label>
+          <input
+            type="date"
+            className={inputCls}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          {date && (
+            <p className="mt-2 text-sm text-slate-500">{formatDate(date)}</p>
+          )}
         </div>
       )}
 
@@ -176,9 +169,7 @@ export default function CreateWizard({ onCreate }) {
           <div
             className={
               "rounded-xl px-4 py-3 text-sm " +
-              (invalidRange
-                ? "bg-red-50 text-red-700"
-                : "bg-blue-50 text-blue-700")
+              (invalidRange ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700")
             }
           >
             {invalidRange ? (
@@ -203,8 +194,7 @@ export default function CreateWizard({ onCreate }) {
       {step === 2 && (
         <div className="grid gap-3">
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-lg font-bold">{title.trim() || "Elterngespräche"}</p>
-            <p className="text-sm text-slate-500">{formatDate(date)}</p>
+            <p className="text-lg font-bold">{formatDate(date)}</p>
             <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
               <dt className="text-slate-500">Zeitraum</dt>
               <dd className="text-right font-semibold tabular-nums">
@@ -221,7 +211,7 @@ export default function CreateWizard({ onCreate }) {
             </dl>
           </div>
           <p className="text-center text-xs text-slate-400">
-            Du kannst Namen, Notizen und Markierungen danach jederzeit anpassen.
+            Namen, Notizen und Markierungen kannst du danach jederzeit anpassen.
           </p>
         </div>
       )}
@@ -230,11 +220,10 @@ export default function CreateWizard({ onCreate }) {
       <div className="mt-6 flex items-center justify-between gap-2">
         <button
           type="button"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-          className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-0"
+          onClick={back}
+          className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
         >
-          ‹ Zurück
+          ‹ {step === 0 ? "Abbrechen" : "Zurück"}
         </button>
 
         {step < STEPS.length - 1 ? (
