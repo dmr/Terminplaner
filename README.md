@@ -41,6 +41,14 @@ Die App hat zwei Ansichten, die sich oben rechts umschalten lassen:
   Termin löschen (mit Rückfrage).
 - **Teilen-Link + QR-Code (Lehrer)**: Pro Termin ein Link, den Eltern öffnen, um
   ein freies Zeitfenster zu buchen – auch als QR-Code zum Aushängen.
+- **Kalender-Export (.ics)**: Lehrkraft exportiert alle gebuchten Gespräche eines
+  Tages als Kalenderdatei. Dank stabiler UIDs **aktualisiert** ein erneuter Import
+  bestehende Einträge statt zu duplizieren; **freigewordene Slots werden als
+  Stornierung exportiert**, sodass keine „Import-Leichen" im Kalender bleiben.
+- **Eltern: Zum Kalender hinzufügen** – nach der Buchung den eigenen Termin als
+  .ics speichern.
+- **Eltern: stornieren / ändern** – die eigene Buchung wird auf dem Gerät
+  wiedererkannt und lässt sich stornieren (Ändern = stornieren + neu buchen).
 - **Drucken**: Saubere Liste zum Aushängen oder Verteilen (🖨️-Knopf).
 - **Speicherung**: Lokal im Browser oder – mit Supabase – in der Cloud.
 

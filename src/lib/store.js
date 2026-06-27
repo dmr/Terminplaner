@@ -95,6 +95,8 @@ function useLocalStore() {
     deleteTermin: async (id) =>
       setTermine((prev) => prev.filter((t) => t.id !== id)),
     bookSlot: async (id, idx, name) => patchSlot(id, idx, { name }),
+    cancelBooking: async (id, idx) =>
+      patchSlot(id, idx, { name: "", note: "", flag: "" }),
     loadShared: async (id) =>
       loadLocal().find((t) => t.id === id) || null,
     refresh: async () => {},
@@ -230,6 +232,14 @@ function useCloudStore() {
     },
     bookSlot: async (id, idx, name) => {
       const { error } = await supabase.rpc("book_slot", {
+        p_termin: id,
+        p_index: idx,
+        p_name: name,
+      });
+      if (error) throw error;
+    },
+    cancelBooking: async (id, idx, name) => {
+      const { error } = await supabase.rpc("cancel_slot", {
         p_termin: id,
         p_index: idx,
         p_name: name,

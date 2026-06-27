@@ -119,3 +119,26 @@ end;
 $$;
 
 grant execute on function public.book_slot(uuid, int, text) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Eigene Buchung stornieren – nur wenn der Name übereinstimmt (Eltern haben
+-- keinen Login, der Name dient als einfacher Nachweis).
+-- ---------------------------------------------------------------------------
+create or replace function public.cancel_slot(p_termin uuid, p_index int, p_name text)
+  returns void
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+begin
+  delete from public.bookings
+   where termin_id = p_termin
+     and slot_index = p_index
+     and lower(trim(name)) = lower(trim(p_name));
+  if not found then
+    raise exception 'not_your_booking';
+  end if;
+end;
+$$;
+
+grant execute on function public.cancel_slot(uuid, int, text) to anon, authenticated;

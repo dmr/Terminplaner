@@ -49,6 +49,14 @@ export default function App() {
     }
   }
 
+  async function handleGuestCancel(terminId, idx, name) {
+    await store.cancelBooking(terminId, idx, name);
+    if (shareId) {
+      const t = await store.loadShared(shareId);
+      setShared(t || null);
+    }
+  }
+
   function switchRole(admin) {
     setIsAdmin(admin);
     setOpenId(null);
@@ -73,7 +81,11 @@ export default function App() {
         <Header />
         <div className="animate-pop">
           {shared ? (
-            <GuestFlow termine={[shared]} onBook={handleGuestBook} />
+            <GuestFlow
+              termine={[shared]}
+              onBook={handleGuestBook}
+              onCancel={handleGuestCancel}
+            />
           ) : (
             <Card>
               <p className="py-6 text-center text-slate-500">
@@ -151,7 +163,11 @@ export default function App() {
             </div>
           </Card>
         ) : (
-          <GuestFlow termine={store.termine} onBook={handleGuestBook} />
+          <GuestFlow
+            termine={store.termine}
+            onBook={handleGuestBook}
+            onCancel={handleGuestCancel}
+          />
         )}
       </div>
 

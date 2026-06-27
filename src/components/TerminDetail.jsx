@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { formatDate, terminLabel, terminEnd } from "../lib/time.js";
+import { buildTerminICS, downloadICS } from "../lib/ics.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 
 const FLAGS = [
@@ -64,6 +65,15 @@ export default function TerminDetail({
             className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
           >
             Teilen
+          </button>
+          <button
+            onClick={() =>
+              downloadICS(`Elterngespraeche_${termin.date}.ics`, buildTerminICS(termin))
+            }
+            title="Gebuchte Termine als Kalenderdatei – freigewordene werden als Storno exportiert"
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-50"
+          >
+            Kalender
           </button>
           <button
             onClick={() => window.print()}
